@@ -144,7 +144,7 @@
     :no-deploy-strategy
     :lein-install))
 
-(defn perform-deploy! [project project-jar]
+(defn perform-deploy! [project build-artifact]
   (case (detect-deployment-strategy project)
 
     :lein-deploy
@@ -154,7 +154,7 @@
     (sh! "lein" "install")
 
     :clojars
-    (sh! "scp" "pom.xml" project-jar (:clojars-url config))
+    (sh! "scp" "pom.xml" build-artifact (:clojars-url config))
 
     :shell
     (apply sh! (:shell config))
