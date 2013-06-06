@@ -46,7 +46,9 @@ The release plugin attempts to detect whether to use @:lein-deploy@ or @:lein-in
 If @:shell@ is specified, the value of the @:shell@ key should be an array of command line arguments, like:
 
 pre. :lein-release {:deploy-via :shell
-                    :shell ["s3cmd" "put" "target/*.jar" "s3://blueant.com/deploy"]}
+                    :shell ["s3cmd" "put" :build-artifact "s3://blueant.com/deploy"]}
+
+Note: that the keyword @:build-artifact@ expands to the release artifact built in this release.
 
 h3. @:clojars-url@
 

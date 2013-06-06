@@ -157,7 +157,9 @@
     (sh! "scp" "pom.xml" build-artifact (:clojars-url config))
 
     :shell
-    (apply sh! (:shell config))
+    (let [substitutions      {:build-artifact build-artifact}
+          after-substitution (map #(get substitutions % %) (:shell config))]
+      (apply sh! after-substitution))
 
     (raise "Error: unrecognized deploy strategy: %s" (detect-deployment-strategy))))
 
