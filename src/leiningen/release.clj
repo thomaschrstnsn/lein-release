@@ -185,13 +185,47 @@
 
 )
 
+(defn detect-build-strategy []
+  (cond
+    (:build-via config)
+    (:build-via config)
+
+    :else
+    :lein-jar-pom))
+
+(defn build-artifact-file-name [project release-version]
+  (let [target-dir (:target-path project (:target-dir project (:jar-dir project ".")))]
+    (case (detect-build-strategy)
+      :lein-jar-pom
+      (format "%s/%s-%s.jar" target-dir (:name project) release-version)
+
+      :lein-ring-uberwar
+      (format "%s/%s-%s-standalone.war" target-dir (:name project) release-version)
+
+      (raise "Error: unrecognized build strategy: %s" (detect-build-strategy)))))
+
+(defn perform-build! []
+  (case (detect-build-strategy)
+
+    :lein-jar-pom
+    (do
+      (println "creating jar and pom files...")
+      (sh! "lein" "jar")
+      (sh! "lein" "pom"))
+
+    :lein-ring-uberwar
+    (do
+      (println "creating uberwar")
+      (sh! "lein" "ring" "uberwar"))
+
+    (raise "Error: unrecognized build strategy: %s" (detect-build-strategy))))
+
 (defn release [project & args]
   (binding [config (or (:lein-release project) config)]
     (let [current-version  (get project :version)
           release-version  (compute-release-version current-version)
           next-dev-version (compute-next-development-version (.replaceAll current-version "-SNAPSHOT" ""))
-          target-dir       (:target-path project (:target-dir project (:jar-dir project "."))) ; target-path for lein2, target-dir or jar-dir for lein1
-          jar-file-name    (format "%s/%s-%s.jar" target-dir (:name project) release-version)]
+          build-artifact   (build-artifact-file-name project release-version)]
       (when (is-snapshot? current-version)
         (println (format "setting project version %s => %s" current-version release-version))
         (set-project-version! current-version release-version)
@@ -199,11 +233,11 @@
         (scm! :add "project.clj")
         (scm! :commit "-m" (format "lein-release plugin: preparing %s release" release-version))
         (scm! :tag (format "%s-%s" (:name project) release-version)))
-      (when-not (.exists (java.io.File. jar-file-name))
-        (println "creating jar and pom files...")
-        (sh! "lein" "jar")
-        (sh! "lein" "pom"))
-      (perform-deploy! project jar-file-name)
+      (println "determined build artifact filename:" build-artifact)
+      (if (.exists (java.io.File. build-artifact))
+        (println "skipping build, build artifact exists")
+        (perform-build!))
+      (perform-deploy! project build-artifact)
       (when-not (is-snapshot? (extract-project-version-from-file))
         (println (format "updating version %s => %s for next dev cycle" release-version next-dev-version))
         (set-project-version! release-version next-dev-version)

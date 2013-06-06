@@ -8,7 +8,7 @@ The plug-in performs the following steps:
 2. Add the project.clj to the SCM system
 3. Commit the project.clj to the SCM system
 4. Tag the project with @projectName-version@
-5. If the project jar file does not exist, it builds it with @lein jar@ and @lein pom@
+5. If build artifact file does not exist, it builds it with a) @lein jar@ and @lein pom@ b) @lein ring uberwar@
 6. Performs a Deploy (see the Deploy section below)
 7. Increments the project minor version number and re-adds the "-SNAPSHOT" suffix
 8. Add the project.clj to the SCM system
@@ -50,10 +50,17 @@ pre. :lein-release {:deploy-via :shell
 
 h3. @:clojars-url@
 
-pre. :lein-release {:deploy-via :clojars 
+pre. :lein-release {:deploy-via :clojars
                :clojars-url "clojars@clojars.mycompany.com:"}
 
 This can be used to change the default clojars target url, particularly useful if you run your own internal instance of clojars.
+
+h3. @:build-via@
+
+    @:lein-release {:build-via :lein-jar-pom}@
+
+This can be used to specify how to build the project build artifact for the release (jar or war).
+Two options are supported: @:lein-jar-pom@ (which is also the default) and @:lein-ring-uberwar@.
 
 h2. Example Configuration
 
