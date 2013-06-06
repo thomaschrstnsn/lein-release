@@ -10,7 +10,7 @@
 
 (def ^:dynamic config {:clojars-url "clojars@clojars.org:"})
 
-(def *scm-systems*
+(def ^:dynamic *scm-systems*
      {:git {:add    ["git" "add"]
             :tag    ["git" "tag"]
             :commit ["git" "commit"]
@@ -209,4 +209,3 @@
         (set-project-version! release-version next-dev-version)
         (scm! :add "project.clj")
         (scm! :commit "-m" (format "lein-release plugin: bumped version from %s to %s for next development cycle" release-version next-dev-version))))))
-
